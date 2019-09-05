@@ -30,9 +30,9 @@ func AddBPM(ctx context.Context, config *config.Config, mgr manager.Manager) err
 	ctx = ctxlog.NewContextWithRecorder(ctx, "bpm-reconciler", mgr.GetEventRecorderFor("bpm-recorder"))
 	r := NewBPMReconciler(
 		ctx, config, mgr,
-		converter.NewResolver(mgr.GetClient(), func() converter.Interpolator { return converter.NewInterpolator() }),
+		converter.NewResolver(mgr.GetClient(), converter.NewInterpolator),
 		controllerutil.SetControllerReference,
-		converter.NewKubeConverter(config.Namespace),
+		converter.NewKubeConverter(config.Namespace, converter.NewConcreteContainerFactory),
 	)
 
 	// Create a new controller

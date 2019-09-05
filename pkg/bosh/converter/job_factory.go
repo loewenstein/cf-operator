@@ -44,7 +44,7 @@ type JobFactory interface {
 	BPMConfigsJob(manifest bdm.Manifest) (*ejv1.ExtendedJob, error)
 }
 
-// ConcreteJobFactory a concrete implementation of JobFactory
+// ConcreteJobFactory is a concrete implementation of JobFactory
 type ConcreteJobFactory struct {
 	Namespace string
 }

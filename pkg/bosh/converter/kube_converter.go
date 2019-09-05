@@ -5,6 +5,8 @@ import (
 
 	certv1 "k8s.io/api/certificates/v1beta1"
 
+
+	"code.cloudfoundry.org/cf-operator/pkg/bosh/bpm"
 	bdm "code.cloudfoundry.org/cf-operator/pkg/bosh/manifest"
 	esv1 "code.cloudfoundry.org/cf-operator/pkg/kube/apis/extendedsecret/v1alpha1"
 	"code.cloudfoundry.org/cf-operator/pkg/kube/util/names"
@@ -13,12 +15,16 @@ import (
 // KubeConverter represents a Manifest in kube resources
 type KubeConverter struct {
 	namespace string
+	newContainerFactoryFunc  NewContainerFactoryFunc
 }
 
+type NewContainerFactoryFunc func(manifestName string, instanceGroupName string, version string, disableLogSidecar bool, releaseImageProvider ReleaseImageProvider, bpmConfigs bpm.Configs) ContainerFactory
+
 // NewKubeConverter converts a Manifest into kube resources
-func NewKubeConverter(namespace string) *KubeConverter {
+func NewKubeConverter(namespace string, newContainerFactoryFunc NewContainerFactoryFunc) *KubeConverter {
 	return &KubeConverter{
 		namespace: namespace,
+		newContainerFactoryFunc: newContainerFactoryFunc,
 	}
 }
 

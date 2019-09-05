@@ -26,7 +26,7 @@ var _ = Describe("kube converter", func() {
 		})
 
 		act := func() []esv1.ExtendedSecret {
-			kubeConverter := converter.NewKubeConverter("foo")
+			kubeConverter := converter.NewKubeConverter("foo", converter.NewConcreteContainerFactory)
 			return kubeConverter.Variables(m.Name, m.Variables)
 		}
 
