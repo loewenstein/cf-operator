@@ -88,8 +88,8 @@ func (g InMemoryGenerator) generateCertificate(request credsgen.CertificateGener
 	// Sign certificate
 	signingProfile := &config.SigningProfile{
 		Usage:        []string{"server auth", "client auth"},
-		Expiry:       time.Duration(g.Expiry*24) * time.Hour,
-		ExpiryString: fmt.Sprintf("%dh", g.Expiry*24),
+		Expiry:       time.Duration(g.Expiry*24) * time.Hour, // one year
+		ExpiryString: fmt.Sprintf("%dh", g.Expiry*24), // one year
 	}
 	policy := &config.Signing{
 		Profiles: map[string]*config.SigningProfile{},
