@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 	"github.com/pkg/errors"
 
 	"code.cloudfoundry.org/cf-operator/integration/environment"
@@ -60,6 +61,11 @@ var _ = BeforeEach(func() {
 	}
 	namespacesToNuke = append(namespacesToNuke, env.Namespace)
 
+	err = env.StartDependencies()
+	if err != nil {
+		fmt.Printf("WARNING: failed to start operator dependencies: %v\n", err)
+	}
+
 	err = env.StartOperator()
 	if err != nil {
 		fmt.Printf("WARNING: failed to start operator: %v\n", err)
@@ -68,6 +74,7 @@ var _ = BeforeEach(func() {
 
 var _ = AfterEach(func() {
 	env.Teardown(CurrentGinkgoTestDescription().Failed)
+	gexec.KillAndWait()
 })
 
 var _ = AfterSuite(func() {
