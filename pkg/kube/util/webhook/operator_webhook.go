@@ -13,15 +13,18 @@ type OperatorWebhook struct {
 	Name string
 	// Path is the path this webhook will serve.
 	Path string
-	// Rules maps to the Rules field in admissionregistrationv1beta1.Webhook
+	// Rules maps to the Rules field in admission MutatingWebhook/ValidatingWebhook
 	Rules []admissionregistrationv1beta1.RuleWithOperations
-	// FailurePolicy maps to the FailurePolicy field in admissionregistrationv1beta1.Webhook
+	// FailurePolicy maps to the FailurePolicy field in admission MutatingWebhook/ValidatingWebhook
 	// This optional. If not set, will be defaulted to Ignore (fail-open) by the server.
 	// More details: https://github.com/kubernetes/api/blob/f5c295feaba2cbc946f0bbb8b535fc5f6a0345ee/admissionregistration/v1beta1/types.go#L144-L147
 	FailurePolicy admissionregistrationv1beta1.FailurePolicyType
-	// NamespaceSelector maps to the NamespaceSelector field in admissionregistrationv1beta1.Webhook
+	// NamespaceSelector maps to the NamespaceSelector field in admission MutatingWebhook/ValidatingWebhook
 	// This optional.
 	NamespaceSelector *metav1.LabelSelector
+	// ObjectSelector maps to the ObjectSelector field in admission MutatingWebhook/ValidatingWebhook
+	// This optional.
+	ObjectSelector *metav1.LabelSelector
 	// Handlers contains a list of handlers. Each handler may only contains the business logic for its own feature.
 	// For example, feature foo and bar can be in the same webhook if all the other configurations are the same.
 	// The handler will be invoked sequentially as the order in the list.

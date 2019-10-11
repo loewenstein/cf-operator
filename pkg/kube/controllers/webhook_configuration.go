@@ -295,6 +295,7 @@ func (f *WebhookConfig) newMutatingWebhook(webhook *webhook.OperatorWebhook, cli
 		Rules:             webhook.Rules,
 		FailurePolicy:     &webhook.FailurePolicy,
 		NamespaceSelector: webhook.NamespaceSelector,
+		ObjectSelector:    webhook.ObjectSelector,
 		ClientConfig:      clientConfig,
 	}
 	return wh
@@ -306,6 +307,7 @@ func (f *WebhookConfig) newValidatingWebhook(webhook *webhook.OperatorWebhook, c
 		Rules:             webhook.Rules,
 		FailurePolicy:     &webhook.FailurePolicy,
 		NamespaceSelector: webhook.NamespaceSelector,
+		ObjectSelector:    webhook.ObjectSelector,
 		ClientConfig:      clientConfig,
 	}
 	return wh

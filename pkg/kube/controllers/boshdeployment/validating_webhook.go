@@ -52,6 +52,15 @@ func NewBOSHDeploymentValidator(log *zap.SugaredLogger, config *config.Config) *
 				"cf-operator-ns": config.Namespace,
 			},
 		},
+		ObjectSelector: &metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				{
+					Key:      "name",
+					Operator: metav1.LabelSelectorOpNotIn,
+					Values:   []string{"cf-operator"},
+				},
+			},
+		},
 		Webhook: &admission.Webhook{
 			Handler: boshDeploymentValidator,
 		},
