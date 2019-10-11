@@ -184,7 +184,7 @@ func (f *WebhookConfig) generateValidationWebhookServerConfig(ctx context.Contex
 					Path:      &webhook.Path,
 				},
 			}
-			config.Webhooks = append(config.Webhooks, f.newWebhook(webhook, clientConfig))
+			config.Webhooks = append(config.Webhooks, f.newValidatingWebhook(webhook, clientConfig))
 		} else {
 			url := url.URL{
 				Scheme: "https",
@@ -197,7 +197,7 @@ func (f *WebhookConfig) generateValidationWebhookServerConfig(ctx context.Contex
 				CABundle: f.CaCertificate,
 				URL:      &urlString,
 			}
-			config.Webhooks = append(config.Webhooks, f.newWebhook(webhook, clientConfig))
+			config.Webhooks = append(config.Webhooks, f.newValidatingWebhook(webhook, clientConfig))
 		}
 	}
 	ctxlog.Debugf(ctx, "Creating validation webhook config '%s'", config.Name)
@@ -234,7 +234,7 @@ func (f *WebhookConfig) generateMutationWebhookServerConfig(ctx context.Context,
 				},
 				CABundle: f.CaCertificate,
 			}
-			config.Webhooks = append(config.Webhooks, f.newWebhook(webhook, clientConfig))
+			config.Webhooks = append(config.Webhooks, f.newMutatingWebhook(webhook, clientConfig))
 		} else {
 			url := url.URL{
 				Scheme: "https",
@@ -247,7 +247,7 @@ func (f *WebhookConfig) generateMutationWebhookServerConfig(ctx context.Context,
 				CABundle: f.CaCertificate,
 				URL:      &urlString,
 			}
-			config.Webhooks = append(config.Webhooks, f.newWebhook(webhook, clientConfig))
+			config.Webhooks = append(config.Webhooks, f.newMutatingWebhook(webhook, clientConfig))
 		}
 	}
 
@@ -289,8 +289,19 @@ func (f *WebhookConfig) writeSecretFiles() error {
 	return nil
 }
 
-func (f *WebhookConfig) newWebhook(webhook *webhook.OperatorWebhook, clientConfig admissionregistrationv1beta1.WebhookClientConfig) admissionregistrationv1beta1.Webhook {
-	wh := admissionregistrationv1beta1.Webhook{
+func (f *WebhookConfig) newMutatingWebhook(webhook *webhook.OperatorWebhook, clientConfig admissionregistrationv1beta1.WebhookClientConfig) admissionregistrationv1beta1.MutatingWebhook {
+	wh := admissionregistrationv1beta1.MutatingWebhook{
+		Name:              webhook.Name,
+		Rules:             webhook.Rules,
+		FailurePolicy:     &webhook.FailurePolicy,
+		NamespaceSelector: webhook.NamespaceSelector,
+		ClientConfig:      clientConfig,
+	}
+	return wh
+}
+
+func (f *WebhookConfig) newValidatingWebhook(webhook *webhook.OperatorWebhook, clientConfig admissionregistrationv1beta1.WebhookClientConfig) admissionregistrationv1beta1.ValidatingWebhook {
+	wh := admissionregistrationv1beta1.ValidatingWebhook{
 		Name:              webhook.Name,
 		Rules:             webhook.Rules,
 		FailurePolicy:     &webhook.FailurePolicy,

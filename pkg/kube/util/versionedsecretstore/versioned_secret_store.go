@@ -308,6 +308,7 @@ func (p VersionedSecretImpl) getGreatestVersion(ctx context.Context, namespace s
 	return greatestVersion, nil
 }
 
+// GenerateSecretName generates versioned secret name
 func GenerateSecretName(namePrefix string, version int) (string, error) {
 	proposedName := fmt.Sprintf("%s-v%d", namePrefix, version)
 
