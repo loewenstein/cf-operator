@@ -69,7 +69,10 @@ func (dg *InstanceGroupResolver) Manifest() (Manifest, error) {
 		return Manifest{}, err
 	}
 
-	return dg.manifest, nil
+	igManifest := dg.manifest
+	igManifest.InstanceGroups = []*InstanceGroup{dg.instanceGroup}
+
+	return igManifest, nil
 }
 
 // resolveManifest collects bpm and link information and enriches the manifest accordingly
