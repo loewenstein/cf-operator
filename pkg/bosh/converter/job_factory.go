@@ -11,6 +11,7 @@ import (
 	bdm "code.cloudfoundry.org/cf-operator/pkg/bosh/manifest"
 	bdv1 "code.cloudfoundry.org/cf-operator/pkg/kube/apis/boshdeployment/v1alpha1"
 	ejv1 "code.cloudfoundry.org/quarks-job/pkg/kube/apis/extendedjob/v1alpha1"
+	"code.cloudfoundry.org/quarks-utils/pkg/config"
 	"code.cloudfoundry.org/quarks-utils/pkg/names"
 )
 
@@ -117,8 +118,8 @@ func (f *JobFactory) VariableInterpolationJob(manifest bdm.Manifest) (*ejv1.Exte
 					Containers: []corev1.Container{
 						{
 							Name:            VarInterpolationContainerName,
-							Image:           GetOperatorDockerImage(),
-							ImagePullPolicy: GetOperatorImagePullPolicy(),
+							Image:           config.GetOperatorDockerImage(),
+							ImagePullPolicy: config.GetOperatorImagePullPolicy(),
 							Args:            args,
 							VolumeMounts:    volumeMounts,
 							Env: []corev1.EnvVar{
@@ -180,8 +181,8 @@ func (f *JobFactory) BPMConfigsJob(manifest bdm.Manifest) (*ejv1.ExtendedJob, er
 func (f *JobFactory) gatheringContainer(cmd, desiredManifestName string, instanceGroupName string) corev1.Container {
 	return corev1.Container{
 		Name:            names.Sanitize(instanceGroupName),
-		Image:           GetOperatorDockerImage(),
-		ImagePullPolicy: GetOperatorImagePullPolicy(),
+		Image:           config.GetOperatorDockerImage(),
+		ImagePullPolicy: config.GetOperatorImagePullPolicy(),
 		Args:            []string{"util", cmd},
 		VolumeMounts: []corev1.VolumeMount{
 			withOpsVolumeMount(desiredManifestName),
