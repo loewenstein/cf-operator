@@ -151,42 +151,55 @@ var _ = Describe("InstanceGroupResolver", func() {
 			})
 
 			Context("when resolving links between providers and consumers", func() {
-				BeforeEach(func() {
-					m, err = env.BOSHManifestWithProviderAndConsumer()
-					Expect(err).NotTo(HaveOccurred())
-					ig = "log-api"
+				Context("when the job consumes a link", func() {
+					BeforeEach(func() {
+						m, err = env.BOSHManifestWithProviderAndConsumer()
+						Expect(err).NotTo(HaveOccurred())
+						ig = "log-api"
+					})
+
+					It("resolves all required data if the job consumes a link", func() {
+						manifest, err := dg.Manifest()
+						Expect(err).ToNot(HaveOccurred())
+
+						// log-api instance_group, with loggregator_trafficcontroller job, consumes a link from doppler job
+						resolvedIg, err := manifest.InstanceGroupByName("log-api")
+						Expect(err).ToNot(HaveOccurred())
+						jobQuarksConsumes := resolvedIg.Jobs[0].Properties.Quarks.Consumes
+						jobConsumesFromDoppler, consumeFromDopplerExists := jobQuarksConsumes["doppler"]
+						Expect(consumeFromDopplerExists).To(BeTrue())
+						expectedProperties := map[string]interface{}{
+							"doppler": map[string]interface{}{
+								"grpc_port": json.Number("7765"),
+							},
+							"fooprop": json.Number("10001"),
+						}
+						for i, instance := range jobConsumesFromDoppler.Instances {
+							Expect(instance.Index).To(Equal(i))
+							Expect(instance.Address).To(Equal(fmt.Sprintf("cf-doppler-%v", i)))
+						}
+
+						Expect(deep.Equal(jobConsumesFromDoppler.Properties, expectedProperties)).To(HaveLen(0))
+					})
 				})
 
-				It("resolves all required data if the job consumes a link", func() {
-					manifest, err := dg.Manifest()
-					Expect(err).ToNot(HaveOccurred())
+				Context("when the job does not consume a link", func() {
+					BeforeEach(func() {
+						m, err = env.BOSHManifestWithProviderAndConsumer()
+						Expect(err).NotTo(HaveOccurred())
+						ig = "doppler"
+					})
+					It("has an empty consumes list if the job does not consume a link", func() {
+						manifest, err := dg.Manifest()
+						Expect(err).ToNot(HaveOccurred())
 
-					// log-api instance_group, with loggregator_trafficcontroller job, consumes a link from doppler job
-					jobQuarksConsumes := manifest.InstanceGroups[1].Jobs[0].Properties.Quarks.Consumes
-					jobConsumesFromDoppler, consumeFromDopplerExists := jobQuarksConsumes["doppler"]
-					Expect(consumeFromDopplerExists).To(BeTrue())
-					expectedProperties := map[string]interface{}{
-						"doppler": map[string]interface{}{
-							"grpc_port": json.Number("7765"),
-						},
-						"fooprop": json.Number("10001"),
-					}
-					for i, instance := range jobConsumesFromDoppler.Instances {
-						Expect(instance.Index).To(Equal(i))
-						Expect(instance.Address).To(Equal(fmt.Sprintf("cf-doppler-%v", i)))
-					}
-
-					Expect(deep.Equal(jobConsumesFromDoppler.Properties, expectedProperties)).To(HaveLen(0))
-				})
-
-				It("has an empty consumes list if the job does not consume a link", func() {
-					manifest, err := dg.Manifest()
-					Expect(err).ToNot(HaveOccurred())
-
-					// doppler instance_group, with doppler job, only provides doppler link
-					jobQuarksConsumes := manifest.InstanceGroups[0].Jobs[0].Properties.Quarks.Consumes
-					var emptyJobQuarksConsumes map[string]JobLink
-					Expect(jobQuarksConsumes).To(BeEquivalentTo(emptyJobQuarksConsumes))
+						// doppler instance_group, with doppler job, only provides doppler link
+						resolvedIg, err := manifest.InstanceGroupByName(ig)
+						Expect(err).ToNot(HaveOccurred())
+						jobQuarksConsumes := resolvedIg.Jobs[0].Properties.Quarks.Consumes
+						var emptyJobQuarksConsumes map[string]JobLink
+						Expect(jobQuarksConsumes).To(BeEquivalentTo(emptyJobQuarksConsumes))
+					})
 				})
 			})
 		})
