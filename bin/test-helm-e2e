@@ -17,7 +17,7 @@ fi
 # Build the required helm charts to run the cf-operator
 ./bin/build-helm
 
-NODES=${NODES:-3}
+NODES=${NODES:-1}
 FLAKE_ATTEMPTS=${FLAKE_ATTEMPTS:-3}
 ginkgo \
   --nodes="$NODES" \
