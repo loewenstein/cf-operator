@@ -18,10 +18,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	bdv1 "code.cloudfoundry.org/cf-operator/pkg/kube/apis/boshdeployment/v1alpha1"
 	estsv1 "code.cloudfoundry.org/cf-operator/pkg/kube/apis/extendedstatefulset/v1alpha1"
-	"code.cloudfoundry.org/quarks-utils/pkg/config"
 	"code.cloudfoundry.org/cf-operator/pkg/kube/util/reference"
+	"code.cloudfoundry.org/quarks-utils/pkg/config"
 	"code.cloudfoundry.org/quarks-utils/pkg/ctxlog"
+	"code.cloudfoundry.org/quarks-utils/pkg/names"
 	vss "code.cloudfoundry.org/quarks-utils/pkg/versionedsecretstore"
 )
 
@@ -124,7 +126,19 @@ func AddExtendedStatefulSet(ctx context.Context, config *config.Config, mgr mana
 
 	// Watch Secrets referenced by the ExtendedStatefulSet
 	secretPredicates := predicate.Funcs{
-		CreateFunc:  func(e event.CreateEvent) bool { return false },
+		CreateFunc: func(e event.CreateEvent) bool {
+			o := e.Object.(*corev1.Secret)
+			shouldProcessEvent := isIGResolvedSecret(o)
+			if shouldProcessEvent {
+				ctxlog.NewPredicateEvent(o).Debug(
+					ctx, e.Meta, names.Secret,
+					fmt.Sprintf("Create predicate passed for %s, existing secret with label %s, value %s",
+						e.Meta.GetName(), bdv1.LabelDeploymentSecretType, o.GetLabels()[bdv1.LabelDeploymentSecretType]),
+				)
+			}
+
+			return shouldProcessEvent
+		},
 		DeleteFunc:  func(e event.DeleteEvent) bool { return false },
 		GenericFunc: func(e event.GenericEvent) bool { return false },
 		UpdateFunc: func(e event.UpdateEvent) bool {
@@ -159,4 +173,22 @@ func AddExtendedStatefulSet(ctx context.Context, config *config.Config, mgr mana
 	}
 
 	return nil
+}
+
+func isIGResolvedSecret(secret *corev1.Secret) bool {
+	ok := vss.IsVersionedSecret(*secret)
+	if !ok {
+		return false
+	}
+
+	secretLabels := secret.GetLabels()
+	deploymentSecretType, ok := secretLabels[bdv1.LabelDeploymentSecretType]
+	if !ok {
+		return false
+	}
+	if deploymentSecretType != names.DeploymentSecretTypeInstanceGroupResolvedProperties.String() {
+		return false
+	}
+
+	return true
 }
